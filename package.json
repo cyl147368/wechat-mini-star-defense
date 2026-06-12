@@ -1,0 +1,15 @@
+{
+  "name": "wechat-mini-star-defense",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A more complex tower-defense WeChat Mini Game.",
+  "scripts": {
+    "build:release": "node scripts/build-release.js",
+    "test": "node -c game.js && node -c js/logic.js && node -c scripts/build-release.js && node -c scripts/doctor.js && node -c scripts/write-qa-report.js && node -c test/logic.test.js && node -c test/simulation.test.js && node -c test/render-contract.test.js && node -c test/release.test.js && zsh -n open-in-wechat-devtools.command && node scripts/build-release.js && node test/logic.test.js && node test/simulation.test.js && node test/render-contract.test.js && node test/release.test.js && node scripts/doctor.js",
+    "doctor": "npm run build:release && node scripts/doctor.js",
+    "verify:release": "npm run build:release && node test/release.test.js",
+    "qa:report": "npm run build:release && node scripts/doctor.js && node scripts/write-qa-report.js",
+    "open:devtools": "zsh open-in-wechat-devtools.command"
+  },
+  "devDependencies": {}
+}
