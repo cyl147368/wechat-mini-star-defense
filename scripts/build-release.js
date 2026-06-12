@@ -11,13 +11,19 @@ var releaseZip = path.join(outputRoot, "wechat-mini-star-defense-release.zip");
 var fullZip = path.join(outputRoot, "wechat-mini-star-defense.zip");
 
 var releaseFiles = [
+  "app.json",
   "game.js",
   "game.json",
+  "pages/index/index.js",
+  "pages/index/index.json",
+  "pages/index/index.wxml",
+  "pages/index/index.wxss",
   "project.config.json",
   "js/logic.js"
 ];
 
 var fullFiles = [
+  "app.json",
   "game.js",
   "game.json",
   "project.config.json",
@@ -25,6 +31,7 @@ var fullFiles = [
   "package.json",
   "open-in-wechat-devtools.command",
   "js",
+  "pages",
   "scripts",
   "test",
   "preview"
@@ -54,7 +61,7 @@ function zip(cwd, output, files) {
 remove(releaseDir);
 fs.mkdirSync(releaseDir, { recursive: true });
 releaseFiles.forEach(copyFile);
-zip(releaseDir, releaseZip, ["game.js", "game.json", "project.config.json", "js"]);
+zip(releaseDir, releaseZip, ["app.json", "game.js", "game.json", "project.config.json", "js", "pages"]);
 zip(root, fullZip, fullFiles);
 
 console.log("release project:", releaseDir);

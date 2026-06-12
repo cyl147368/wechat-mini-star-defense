@@ -11,9 +11,14 @@ var releaseZip = path.join(outputRoot, "wechat-mini-star-defense-release.zip");
 var fullZip = path.join(outputRoot, "wechat-mini-star-defense.zip");
 
 var expectedReleaseFiles = [
+  "app.json",
   "game.js",
   "game.json",
   "js/logic.js",
+  "pages/index/index.js",
+  "pages/index/index.json",
+  "pages/index/index.wxml",
+  "pages/index/index.wxss",
   "project.config.json"
 ];
 
@@ -49,11 +54,15 @@ if (files.join("\n") !== expectedReleaseFiles.join("\n")) {
 }
 
 var project = readJson(path.join(releaseDir, "project.config.json"));
+var app = readJson(path.join(releaseDir, "app.json"));
 if (project.compileType !== "game") fail("compileType must be game");
 if (project.appid !== "touristappid") fail("release appid must be touristappid");
 if (project.setting && project.setting.packNpmManually) fail("release should not require npm packing");
 
 var game = readJson(path.join(releaseDir, "game.json"));
+if (!Array.isArray(app.pages) || app.pages[0] !== "pages/index/index") fail("app.json pages must include pages/index/index");
+if (app.deviceOrientation !== "portrait") fail("app.json must be portrait");
+if (app.showStatusBar !== false) fail("app.json showStatusBar must be false");
 if (game.deviceOrientation !== "portrait") fail("game must be portrait");
 
 var source = fs.readFileSync(path.join(releaseDir, "game.js"), "utf8");

@@ -26,18 +26,27 @@ var files = [];
 walk(releaseDir, releaseDir, files);
 files.sort();
 assert.deepStrictEqual(files, [
+  "app.json",
   "game.js",
   "game.json",
   "js/logic.js",
+  "pages/index/index.js",
+  "pages/index/index.json",
+  "pages/index/index.wxml",
+  "pages/index/index.wxss",
   "project.config.json"
 ], "release should contain only runtime files");
 
 var project = JSON.parse(fs.readFileSync(path.join(releaseDir, "project.config.json"), "utf8"));
+var app = JSON.parse(fs.readFileSync(path.join(releaseDir, "app.json"), "utf8"));
 assert.strictEqual(project.compileType, "game", "release must be a mini game");
 assert.strictEqual(project.appid, "touristappid", "release should import without a private appid");
 assert.strictEqual(project.setting.packNpmManually, false, "release should not require npm build");
+assert.deepStrictEqual(app.pages, ["pages/index/index"], "app should declare the page required by DevTools");
 
 var game = JSON.parse(fs.readFileSync(path.join(releaseDir, "game.json"), "utf8"));
+assert.strictEqual(app.deviceOrientation, "portrait", "app should be portrait");
+assert.strictEqual(app.showStatusBar, false, "app should hide status bar");
 assert.strictEqual(game.deviceOrientation, "portrait", "game should be portrait");
 
 var gameSource = fs.readFileSync(path.join(releaseDir, "game.js"), "utf8");
