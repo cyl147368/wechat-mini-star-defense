@@ -27,8 +27,11 @@ walk(releaseDir, releaseDir, files);
 files.sort();
 assert.deepStrictEqual(files, [
   "app.json",
+  "cloudfunctions/playerState/index.js",
+  "cloudfunctions/playerState/package.json",
   "game.js",
   "game.json",
+  "js/cloud-state.js",
   "js/logic.js",
   "pages/index/index.js",
   "pages/index/index.json",
@@ -41,6 +44,7 @@ var project = JSON.parse(fs.readFileSync(path.join(releaseDir, "project.config.j
 var app = JSON.parse(fs.readFileSync(path.join(releaseDir, "app.json"), "utf8"));
 assert.strictEqual(project.compileType, "game", "release must be a mini game");
 assert.strictEqual(project.appid, "touristappid", "release should import without a private appid");
+assert.strictEqual(project.cloudfunctionRoot, "cloudfunctions/", "release should expose cloud functions");
 assert.strictEqual(project.setting.packNpmManually, false, "release should not require npm build");
 assert.deepStrictEqual(app.pages, ["pages/index/index"], "app should declare the page required by DevTools");
 
@@ -50,8 +54,14 @@ assert.strictEqual(app.showStatusBar, false, "app should hide status bar");
 assert.strictEqual(game.deviceOrientation, "portrait", "game should be portrait");
 
 var gameSource = fs.readFileSync(path.join(releaseDir, "game.js"), "utf8");
+var cloudSource = fs.readFileSync(path.join(releaseDir, "js", "cloud-state.js"), "utf8");
+var cloudFunctionSource = fs.readFileSync(path.join(releaseDir, "cloudfunctions", "playerState", "index.js"), "utf8");
 var logicSource = fs.readFileSync(path.join(releaseDir, "js/logic.js"), "utf8");
 assert.ok(gameSource.indexOf("星港防线") !== -1, "release should contain new game identity");
+assert.ok(gameSource.indexOf("CloudState") !== -1, "release should wire cloud state sync");
+assert.ok(cloudSource.indexOf("wxApi.login") !== -1, "cloud state should use WeChat login");
+assert.ok(cloudSource.indexOf("callFunction") !== -1, "cloud state should call the cloud function");
+assert.ok(cloudFunctionSource.indexOf("OPENID") !== -1, "cloud function should use WeChat OPENID");
 assert.ok(logicSource.indexOf("TOWER_TYPES") !== -1, "release should include tower-defense systems");
 [
   "霓虹贪吃蛇",

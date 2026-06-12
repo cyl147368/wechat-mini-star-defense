@@ -19,6 +19,9 @@ var releaseFiles = [
   "pages/index/index.wxml",
   "pages/index/index.wxss",
   "project.config.json",
+  "js/cloud-state.js",
+  "cloudfunctions/playerState/index.js",
+  "cloudfunctions/playerState/package.json",
   "js/logic.js"
 ];
 
@@ -30,6 +33,7 @@ var fullFiles = [
   "README.md",
   "package.json",
   "open-in-wechat-devtools.command",
+  "cloudfunctions",
   "js",
   "pages",
   "scripts",
@@ -61,7 +65,7 @@ function zip(cwd, output, files) {
 remove(releaseDir);
 fs.mkdirSync(releaseDir, { recursive: true });
 releaseFiles.forEach(copyFile);
-zip(releaseDir, releaseZip, ["app.json", "game.js", "game.json", "project.config.json", "js", "pages"]);
+zip(releaseDir, releaseZip, ["app.json", "game.js", "game.json", "project.config.json", "cloudfunctions", "js", "pages"]);
 zip(root, fullZip, fullFiles);
 
 console.log("release project:", releaseDir);

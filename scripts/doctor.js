@@ -12,8 +12,11 @@ var fullZip = path.join(outputRoot, "wechat-mini-star-defense.zip");
 
 var expectedReleaseFiles = [
   "app.json",
+  "cloudfunctions/playerState/index.js",
+  "cloudfunctions/playerState/package.json",
   "game.js",
   "game.json",
+  "js/cloud-state.js",
   "js/logic.js",
   "pages/index/index.js",
   "pages/index/index.json",
@@ -57,6 +60,7 @@ var project = readJson(path.join(releaseDir, "project.config.json"));
 var app = readJson(path.join(releaseDir, "app.json"));
 if (project.compileType !== "game") fail("compileType must be game");
 if (project.appid !== "touristappid") fail("release appid must be touristappid");
+if (project.cloudfunctionRoot !== "cloudfunctions/") fail("cloudfunctionRoot must point at cloudfunctions/");
 if (project.setting && project.setting.packNpmManually) fail("release should not require npm packing");
 
 var game = readJson(path.join(releaseDir, "game.json"));
@@ -66,7 +70,13 @@ if (app.showStatusBar !== false) fail("app.json showStatusBar must be false");
 if (game.deviceOrientation !== "portrait") fail("game must be portrait");
 
 var source = fs.readFileSync(path.join(releaseDir, "game.js"), "utf8");
+var cloudSource = fs.readFileSync(path.join(releaseDir, "js", "cloud-state.js"), "utf8");
+var functionSource = fs.readFileSync(path.join(releaseDir, "cloudfunctions", "playerState", "index.js"), "utf8");
 if (source.indexOf("星港防线") === -1) fail("new star-defense identity missing");
+if (source.indexOf("CloudState") === -1) fail("cloud state sync should be wired into game.js");
+if (cloudSource.indexOf("wxApi.login") === -1) fail("cloud state should call wx.login");
+if (cloudSource.indexOf("callFunction") === -1) fail("cloud state should call a cloud function");
+if (functionSource.indexOf("OPENID") === -1) fail("cloud function should persist state by WeChat OPENID");
 ["霓虹贪吃蛇", "合成 2048", "极速躲避", "花房订单", "wechat-mini-arcade", "wechat-mini-garden-match"].forEach(function (oldText) {
   if (source.indexOf(oldText) !== -1) fail("old project content leaked into release: " + oldText);
 });
