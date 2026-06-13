@@ -20,6 +20,8 @@ var releaseFiles = [
   "pages/index/index.wxss",
   "project.config.json",
   "js/cloud-state.js",
+  "js/cloud-config.js",
+  "js/session-ui.js",
   "cloudfunctions/playerState/index.js",
   "cloudfunctions/playerState/package.json",
   "js/logic.js"

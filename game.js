@@ -2,6 +2,8 @@
 
 var Logic = require("./js/logic");
 var CloudState = require("./js/cloud-state");
+var CloudConfig = require("./js/cloud-config");
+var SessionUI = require("./js/session-ui");
 
 var GAME_ID = "wechat-mini-star-defense";
 var STORAGE_KEY = "wechat-mini-star-defense-state-v1";
@@ -459,7 +461,7 @@ function drawOverlay(ctx, state, layout) {
   });
 }
 
-function render(ctx, state, layout) {
+function render(ctx, state, layout, cloudStatus) {
   ctx.fillStyle = makeBackground(ctx, layout.width, layout.height);
   call(ctx, "fillRect", [0, 0, layout.width, layout.height]);
   drawStars(ctx, layout);
@@ -470,6 +472,7 @@ function render(ctx, state, layout) {
   drawEnemies(ctx, state, layout);
   drawControls(ctx, state, layout);
   drawOverlay(ctx, state, layout);
+  SessionUI.draw(ctx, layout, cloudStatus || {});
 }
 
 function extractTouch(event) {
@@ -482,6 +485,7 @@ function extractTouch(event) {
 }
 
 function saveState(wxApi, state, cloudSync) {
+  if (state && typeof state === "object") state._clientUpdatedAt = Date.now();
   if (wxApi && wxApi.setStorageSync) {
     safe(function () {
       wxApi.setStorageSync(STORAGE_KEY, state);
@@ -526,6 +530,7 @@ function createRuntime(options) {
     wx: wxApi,
     gameId: GAME_ID,
     storageKey: STORAGE_KEY,
+    env: CloudConfig.envId,
     sanitize: Logic.sanitizeState
   });
 
@@ -545,11 +550,15 @@ function createRuntime(options) {
   }
 
   function redraw() {
-    if (runtime.ctx) render(runtime.ctx, runtime.state, runtime.layout);
+    if (runtime.ctx) render(runtime.ctx, runtime.state, runtime.layout, runtime.cloudSync && runtime.cloudSync.getStatus());
   }
 
   function applyRemoteState(remoteState) {
     if (!remoteState) return;
+    var remoteStamp = Number(remoteState._clientUpdatedAt) || 0;
+    var localStamp = Number(runtime.state && runtime.state._clientUpdatedAt) || 0;
+    if (localStamp && remoteStamp && remoteStamp < localStamp) return;
+    if (!remoteStamp && runtime.state && Number(runtime.state.timeMs) > Number(remoteState.timeMs) + 1000) return;
     runtime.state = Logic.sanitizeState(remoteState);
     saveState(wxApi, runtime.state, null);
     redraw();
@@ -581,6 +590,11 @@ function createRuntime(options) {
   }
 
   function tap(point) {
+    if (runtime.cloudSync && SessionUI.hit(runtime.layout, point.x, point.y)) {
+      runtime.cloudSync.requestUserProfile(CloudConfig.profileDesc, redraw);
+      return;
+    }
+
     var control = controlFromPoint(runtime.layout, point.x, point.y);
     if (control) {
       handleControl(control);
@@ -612,7 +626,7 @@ function createRuntime(options) {
     if (runtime.state.phase === "running") {
       runtime.state = Logic.tick(runtime.state, dt);
       runtime.saveTimer += dt;
-      if (runtime.saveTimer > 1000 || runtime.state.phase !== "running") {
+      if (runtime.saveTimer > 5000 || runtime.state.phase !== "running") {
         runtime.saveTimer = 0;
         saveState(wxApi, runtime.state, runtime.cloudSync);
       }
